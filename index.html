@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HW III – Vega-Lite Sales Dashboard</title>
+  <meta name="description" content="Interactive Sales Data Dashboard — Vega-Lite visualizations for Assignment 3">
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #06080f;
+      --bg-card: rgba(15, 20, 35, 0.75);
+      --bg-card-hover: rgba(25, 33, 56, 0.9);
+      --border: rgba(255,255,255,0.06);
+      --border-hover: rgba(255,255,255,0.12);
+      --text: #eef2ff;
+      --text-sub: #a0aec0;
+      --text-dim: #5a6580;
+      --accent: #7c3aed;
+      --indigo: #818cf8; --amber: #fbbf24; --emerald: #34d399;
+      --rose: #fb7185; --sky: #38bdf8; --pink: #f472b6;
+      --radius: 14px;
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+
+    .ambient {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 50% 40% at 15% 15%, rgba(124,58,237,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 35% at 85% 75%, rgba(56,189,248,0.05) 0%, transparent 70%),
+        radial-gradient(ellipse 45% 30% at 50% 50%, rgba(251,191,36,0.03) 0%, transparent 70%);
+    }
+
+    /* ═══════ PAGE SYSTEM ═══════ */
+    .page {
+      position: fixed; inset: 0; z-index: 1;
+      display: flex; flex-direction: column;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+    .page.active { opacity: 1; visibility: visible; }
+
+    /* ═══════ HOMEPAGE ═══════ */
+    .home { padding: 1.2vh 3vw; justify-content: center; align-items: center; }
+    .home-inner { width: 100%; max-width: 1100px; text-align: center; }
+
+    .home-badge {
+      display: inline-block; padding: 0.25rem 0.9rem; border-radius: 100px;
+      background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.25);
+      color: #a78bfa; font-size: 0.6rem; font-weight: 600;
+      letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 0.6rem;
+    }
+    .home-inner h1 {
+      font-size: clamp(1.4rem, 3vw, 2.2rem); font-weight: 800;
+      letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 0.35rem;
+      background: linear-gradient(135deg, #f1f5f9, #94a3b8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .home-inner .home-sub { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 0.2rem; line-height: 1.4; }
+    .home-inner .home-meta { font-size: 0.65rem; color: var(--text-dim); margin-bottom: 1rem; }
+    .home-meta span { color: var(--indigo); font-weight: 600; }
+
+    .section-label {
+      font-size: 0.55rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--text-dim); margin-bottom: 0.5rem;
+      text-align: left;
+    }
+
+    .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; margin-bottom: 0.7rem; }
+
+    .nav-card {
+      position: relative; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 0.8rem 1rem 0.75rem;
+      cursor: pointer; transition: var(--transition); text-align: left;
+      overflow: hidden; backdrop-filter: blur(10px);
+    }
+    .nav-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      opacity: 0; transition: opacity var(--transition);
+    }
+    .nav-card:hover {
+      background: var(--bg-card-hover); border-color: var(--border-hover);
+      transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .nav-card:hover::before { opacity: 1; }
+    .c-indigo::before { background: linear-gradient(90deg, #818cf8, #a78bfa); }
+    .c-amber::before { background: linear-gradient(90deg, #fbbf24, #f97316); }
+    .c-emerald::before { background: linear-gradient(90deg, #34d399, #14b8a6); }
+    .c-sky::before { background: linear-gradient(90deg, #38bdf8, #818cf8); }
+    .c-rose::before { background: linear-gradient(90deg, #fb7185, #f472b6); }
+    .c-violet::before { background: linear-gradient(90deg, #a78bfa, #8b5cf6); }
+    .c-teal::before { background: linear-gradient(90deg, #14b8a6, #06b6d4); }
+
+    .card-top { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; }
+    .card-num {
+      width: 24px; height: 24px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .c-indigo .card-num { background: linear-gradient(135deg, #818cf8, #6366f1); }
+    .c-amber .card-num { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+    .c-emerald .card-num { background: linear-gradient(135deg, #34d399, #10b981); }
+    .c-sky .card-num { background: linear-gradient(135deg, #38bdf8, #3b82f6); }
+    .c-rose .card-num { background: linear-gradient(135deg, #fb7185, #ef4444); }
+    .c-violet .card-num { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
+    .c-teal .card-num { background: linear-gradient(135deg, #14b8a6, #06b6d4); }
+
+    .card-type { font-size: 0.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+    .nav-card h3 { font-size: 0.8rem; font-weight: 700; margin-bottom: 0.2rem; color: var(--text); }
+    .nav-card p { font-size: 0.65rem; color: var(--text-sub); line-height: 1.4; }
+    .card-arrow { position: absolute; bottom: 0.7rem; right: 0.9rem; font-size: 0.75rem; color: var(--text-dim); transition: var(--transition); }
+    .nav-card:hover .card-arrow { color: var(--indigo); transform: translateX(3px); }
+
+    .center-card-wrap { display: flex; justify-content: center; width: 100%; margin-top: 0.5rem; margin-bottom: 2rem; }
+    .center-card-wrap .nav-card { width: 100%; max-width: 360px; }
+
+    /* ═══════ VIEW PAGES ═══════ */
+    .view { overflow-y: auto; }
+    .topbar {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.6rem 1.5rem; background: rgba(6,8,15,0.88);
+      backdrop-filter: blur(16px); border-bottom: 1px solid var(--border);
+    }
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 0.8rem; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05);
+      color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.75rem;
+      font-weight: 600; cursor: pointer; transition: var(--transition);
+    }
+    .btn-back:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.25); }
+    
+    .topbar-center { display: flex; align-items: center; gap: 1rem; }
+    .topbar-title { font-size: 0.8rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.2px; }
+    
+    .topbar-hint { font-size: 0.55rem; color: rgba(255,255,255,0.3); display: flex; align-items: center; gap: 0.35rem; }
+    .topbar-hint kbd { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); font-family: 'Inter'; font-size: 0.6rem; }
+    
+    .topbar-nav { display: flex; gap: 0.4rem; align-items: center; }
+    .topbar-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: rgba(255,255,255,0.15); border: none;
+      cursor: pointer; transition: var(--transition);
+    }
+    .topbar-dot:hover { background: rgba(255,255,255,0.3); }
+    .topbar-dot.active { width: 24px; border-radius: 5px; background: var(--accent); }
+
+    .view-body {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 0.5rem 1.5rem 1rem;
+      min-height: 0; overflow-y: auto;
+    }
+    .view-header { text-align: center; margin-bottom: 0.5rem; max-width: 600px; flex-shrink: 0; }
+    .view-tag {
+      display: inline-block; font-size: 0.55rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.2px;
+      padding: 0.2rem 0.6rem; border-radius: 5px; margin-bottom: 0.3rem;
+    }
+    .v1 .view-tag { background: rgba(129,140,248,0.15); color: #a5b4fc; }
+    .v2 .view-tag { background: rgba(251,191,36,0.15); color: #fcd34d; }
+    .v3 .view-tag { background: rgba(52,211,153,0.15); color: #6ee7b7; }
+    .v4 .view-tag { background: rgba(56,189,248,0.15); color: #7dd3fc; }
+    .v5 .view-tag { background: rgba(251,113,133,0.15); color: #fda4af; }
+    .v6 .view-tag { background: rgba(20,184,166,0.15); color: #5eead4; }
+    .v7 .view-tag { background: rgba(167,139,250,0.15); color: #c4b5fd; }
+
+    .view-header h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.2rem; }
+    .view-header p { font-size: 0.72rem; color: var(--text-sub); line-height: 1.45; }
+
+    .chart-wrap {
+      position: relative; 
+      background: var(--bg-card); 
+      border: 1px solid var(--border);
+      border-radius: 16px; 
+      padding: 16px 20px; 
+      margin: 0 auto;
+      backdrop-filter: blur(12px);
+      flex-shrink: 0;
+    }
+    .chart-wrap::after {
+      content: ''; position: absolute; inset: -1px; border-radius: 17px; padding: 1px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.2), transparent, rgba(56,189,248,0.15));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+    }
+    
+    .vega-embed summary { display: none !important; }
+
+    /* ═══════ FLOATING STATS PANEL ═══════ */
+    .insight-strip {
+      position: absolute;
+      left: 1.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 0.8rem;
+      backdrop-filter: blur(16px);
+      z-index: 20;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    /* Override for home page specifically to put it at the bottom middle */
+    #home-stats {
+      position: relative;
+      left: auto;
+      top: auto;
+      transform: none;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: max-content;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    #home-stats .strip-title {
+      width: 100%;
+      margin-bottom: 0.4rem;
+    }
+    #home-stats .insight {
+      min-width: 120px;
+    }
+
+    .strip-title {
+      font-size: 0.55rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-align: center;
+      margin-bottom: 0.2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+    }
+    .insight {
+      background: rgba(255,255,255,0.03); 
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 8px; 
+      padding: 0.6rem 0.7rem; 
+      text-align: center; 
+      min-width: 95px;
+    }
+    .insight .label {
+      font-size: 0.5rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.7px; color: var(--text-sub); margin-bottom: 0.2rem;
+    }
+    .insight .val { font-size: 0.75rem; font-weight: 700; }
+    .insight .val.indigo { color: var(--indigo); }
+    .insight .val.amber { color: var(--amber); }
+    .insight .val.emerald { color: var(--emerald); }
+    .insight .val.rose { color: var(--rose); }
+    .insight .val.sky { color: var(--sky); }
+
+    /* ═══════ HTML CHECKLIST STYLES FOR VIEW 4 ═══════ */
+    #pg-4 .view4-shell {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) 245px;
+      column-gap: 1rem;
+      align-items: start;
+      width: 100%;
+    }
+    #pg-4 #c4 { width: 100%; min-width: 0; }
+    #pg-4 #c4 .vega-embed { width: 100% !important; max-width: 100%; }
+    #pg-4 .view4-panel {
+      width: 245px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      background: rgba(10, 16, 34, 0.82);
+      padding: 0.62rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.62rem;
+    }
+    #pg-4 .view4-checklist {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.38rem;
+    }
+    #pg-4 .view4-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 0.08rem;
+    }
+    #pg-4 .view4-checkrow {
+      width: 100%;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 0.42rem;
+      padding: 0.26rem 0.38rem;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.66);
+      border: 1px solid rgba(129,140,248,0.16);
+      cursor: pointer;
+    }
+    #pg-4 .view4-checkrow input[type="checkbox"] {
+      width: 0.84rem;
+      height: 0.84rem;
+      accent-color: #818cf8;
+      cursor: pointer;
+    }
+    #pg-4 .view4-checkrow .name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    #pg-4 .view4-checkrow .blob {
+      width: 0.72rem;
+      height: 0.72rem;
+      border-radius: 999px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset;
+    }
+    #pg-4 .view4-checkrow .blob.east { background: #818cf8; }
+    #pg-4 .view4-checkrow .blob.central { background: #fbbf24; }
+    #pg-4 .view4-checkrow .blob.west { background: #34d399; }
+    #pg-4 .view4-legendstack {
+      width: 100%;
+      margin-top: 0.18rem;
+      padding-top: 0.58rem;
+      border-top: 1px solid rgba(148,163,184,0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 0.68rem;
+      align-items: center;
+    }
+    #pg-4 .view4-legendgroup {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.28rem;
+    }
+    #pg-4 .view4-legendgroup .gtitle {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.08rem;
+      text-align: center;
+    }
+    #pg-4 .view4-legenditem {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      color: #e2e8f0;
+      padding: 0.05rem 0.2rem;
+    }
+    #pg-4 .view4-legenditem .shape {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0.85rem;
+      font-size: 0.86rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    #pg-4 .view4-legenditem .shape.binder { color: #818cf8; }
+    #pg-4 .view4-legenditem .shape.desk { color: #14b8a6; }
+    #pg-4 .view4-legenditem .shape.pen { color: #fbbf24; }
+    #pg-4 .view4-legenditem .shape.pen-set { color: #f472b6; }
+    #pg-4 .view4-legenditem .shape.pencil { color: #38bdf8; }
+    #pg-4 .view4-legendgroup .view4-legenditem:nth-child(2) .shape { color: #818cf8; }
+    #pg-4 .view4-legendgroup .view4-legenditem:nth-child(3) .shape { color: #14b8a6; }
+    #pg-4 .view4-legendgroup .view4-legenditem:nth-child(4) .shape { color: #fbbf24; }
+    #pg-4 .view4-legendgroup .view4-legenditem:nth-child(5) .shape { color: #f472b6; }
+    #pg-4 .view4-legendgroup .view4-legenditem:nth-child(6) .shape { color: #38bdf8; }
+    #pg-4 .view4-legenditem .shape.cross { font-size: 0.78rem; }
+
+    /* ═══════ HTML DROPDOWN STYLES FOR VIEW 6 ═══════ */
+    #pg-6 .view6-shell {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) 230px;
+      column-gap: 1rem;
+      align-items: start;
+      width: 100%;
+    }
+    #pg-6 #c6 { width: 100%; min-width: 0; }
+    #pg-6 #c6 .vega-embed { width: 100% !important; max-width: 100%; }
+    #pg-6 .view6-panel {
+      width: 230px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      background: rgba(10, 16, 34, 0.82);
+      padding: 0.62rem;
+    }
+    #pg-6 .view6-panel label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      letter-spacing: 0.4px;
+      margin-bottom: 0.35rem;
+    }
+    #pg-6 .view6-panel select {
+      appearance: none;
+      width: 100%;
+      border: 1px solid rgba(129,140,248,0.45);
+      border-radius: 9px;
+      background: linear-gradient(180deg, rgba(30,41,59,0.95), rgba(15,23,42,0.95));
+      color: #eef2ff;
+      padding: 0.5rem 0.6rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+    #pg-6 .view6-panel select:focus {
+      border-color: #a78bfa;
+      box-shadow: 0 0 0 2px rgba(167,139,250,0.2);
+    }
+    #pg-6 .view6-panel option {
+      color: #0f172a;
+    }
+
+    @media (max-width: 1100px) {
+      .insight-strip {
+        position: relative;
+        left: auto;
+        top: auto;
+        transform: none;
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: 100%;
+        max-width: 600px;
+        margin: 1rem auto 0;
+        padding: 0.8rem;
+      }
+      .strip-title {
+        width: 100%;
+        margin-bottom: 0.2rem;
+      }
+      .insight {
+        flex: 1;
+        min-width: 100px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .card-grid { grid-template-columns: repeat(2, 1fr); }
+      .home { padding: 1rem; overflow-y: auto; }
+      #pg-4 .view4-shell { grid-template-columns: 1fr; row-gap: 0.6rem; }
+      #pg-4 .view4-panel { width: 100%; }
+      #pg-6 .view6-shell { grid-template-columns: 1fr; row-gap: 0.6rem; }
+      #pg-6 .view6-panel { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="ambient"></div>
+
+<!-- ═══════ HOMEPAGE ═══════ -->
+<div id="pg-home" class="page active home">
+  <div class="home-inner">
+    <div class="home-badge">Assignment 3 — Vega-Lite</div>
+    <h1>Sales Data Dashboard</h1>
+    <p class="home-sub">Interactive visualizations revealing insights from the HW_III sales dataset</p>
+    <p class="home-meta"> <span>Jan 2021</span> → <span>Dec 2022</span></p>
+
+    <div class="section-label">Required Views</div>
+    <div class="card-grid">
+      <div class="nav-card c-indigo" onclick="go(1)">
+        <div class="card-top"><div class="card-num">1</div><span class="card-type">Donut Chart</span></div>
+        <h3>Revenue by Sales Rep</h3>
+        <p>Total revenue distribution across reps</p><span class="card-arrow">→</span>
+      </div>
+      <div class="nav-card c-amber" onclick="go(2)">
+        <div class="card-top"><div class="card-num">2</div><span class="card-type">Streamgraph</span></div>
+        <h3>Revenue Over Time</h3>
+        <p>Item revenue evolution across 2 years</p><span class="card-arrow">→</span>
+      </div>
+      <div class="nav-card c-emerald" onclick="go(3)">
+        <div class="card-top"><div class="card-num">3</div><span class="card-type">Trellis Histogram</span></div>
+        <h3>Units Distribution</h3>
+        <p>Per-item histograms with mean overlay</p><span class="card-arrow">→</span>
+      </div>
+    </div>
+
+    <div class="section-label">Interactive Custom Views (2 interactions each)</div>
+    <div class="card-grid">
+      <div class="nav-card c-sky" onclick="go(4)">
+        <div class="card-top"><div class="card-num">4</div><span class="card-type">Scatter + Linked Bar</span></div>
+        <h3>Units vs. Revenue</h3>
+        <p>Brush select + legend filter by region</p><span class="card-arrow">→</span>
+      </div>
+      <div class="nav-card c-rose" onclick="go(5)">
+        <div class="card-top"><div class="card-num">5</div><span class="card-type">Heatmap + Highlight</span></div>
+        <h3>Region × Item Revenue</h3>
+        <p>Click select cells + hover highlight</p><span class="card-arrow">→</span>
+      </div>
+      <div class="nav-card c-teal" onclick="go(6)">
+        <div class="card-top"><div class="card-num">6</div><span class="card-type">Bar + Dropdown</span></div>
+        <h3>Rep Performance Ranking</h3>
+        <p>Click highlight + dropdown region filter</p><span class="card-arrow">→</span>
+      </div>
+    </div>
+
+    <div class="center-card-wrap">
+      <div class="nav-card c-violet" onclick="go(7)">
+        <div class="card-top"><div class="card-num">✦</div><span class="card-type">Multi-View Concatenation</span></div>
+        <h3>Full Concatenated Dashboard</h3>
+        <p>All views combined in a single Vega-Lite spec using vconcat + hconcat</p><span class="card-arrow">→</span>
+      </div>
+    </div>
+    
+    <div class="insight-strip" id="home-stats">
+      <div class="strip-title">Dataset Overview</div>
+      <div class="insight"><div class="label">Total Revenue</div><div class="val indigo">$19,627</div></div>
+      <div class="insight"><div class="label">Total Units</div><div class="val amber">2,121</div></div>
+      <div class="insight"><div class="label">Total Orders</div><div class="val emerald">43</div></div>
+      <div class="insight"><div class="label">Sales Reps</div><div class="val sky">11</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ VIEW 1 — Donut ═══════ -->
+<div id="pg-1" class="page view v1">
+  <div class="topbar">
+    <button class="btn-back" onclick="goHome()">← Home</button>
+    <div class="topbar-center">
+      <span class="topbar-title">Chart 1 of 7</span>
+      <span class="topbar-hint"><kbd>←</kbd><kbd>→</kbd> nav · <kbd>Esc</kbd> home</span>
+    </div>
+    <div class="topbar-nav" id="dots-1"></div>
+  </div>
+  <div class="view-body">
+    <div class="view-header">
+      <span class="view-tag">Donut Chart</span>
+      <h1>Revenue by Sales Rep</h1>
+      <p>Each arc shows a rep's share of total revenue. Hover any slice for details.</p>
+    </div>
+    <div class="chart-wrap"><div id="c1"></div></div>
+    
+    <div class="insight-strip">
+      <div class="strip-title">Quick Stats</div>
+      <div class="insight"><div class="label">Total Revenue</div><div class="val indigo">$19,627</div></div>
+      <div class="insight"><div class="label">Top Rep</div><div class="val amber">Jardine</div></div>
+      <div class="insight"><div class="label">Total Reps</div><div class="val emerald">11</div></div>
+      <div class="insight"><div class="label">Avg / Rep</div><div class="val sky">$1,784</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ VIEW 2 — Streamgraph ═══════ -->
+<div id="pg-2" class="page view v2">
+  <div class="topbar">
+    <button class="btn-back" onclick="goHome()">← Home</button>
+    <div class="topbar-center">
+      <span class="topbar-title">Chart 2 of 7</span>
+      <span class="topbar-hint"><kbd>←</kbd><kbd>→</kbd> nav · <kbd>Esc</kbd> home</span>
+    </div>
+    <div class="topbar-nav" id="dots-2"></div>
+  </div>
+  <div class="view-body">
+    <div class="view-header">
+      <span class="view-tag">Streamgraph</span>
+      <h1>Revenue Over Time by Item</h1>
+      <p>Center-stacked area chart showing each item's contribution from Jan 2021–Dec 2022.</p>
+    </div>
+    <div class="chart-wrap"><div id="c2"></div></div>
+    
+    <div class="insight-strip">
+      <div class="strip-title">Quick Stats</div>
+      <div class="insight"><div class="label">Total Orders</div><div class="val indigo">43</div></div>
+      <div class="insight"><div class="label">Time Span</div><div class="val amber">24 Months</div></div>
+      <div class="insight"><div class="label">Top Item</div><div class="val emerald">Binder</div></div>
+      <div class="insight"><div class="label">Total Units</div><div class="val sky">2,121</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ VIEW 3 — Trellis Histogram ═══════ -->
+<div id="pg-3" class="page view v3">
+  <div class="topbar">
+    <button class="btn-back" onclick="goHome()">← Home</button>
+    <div class="topbar-center">
+      <span class="topbar-title">Chart 3 of 7</span>
+      <span class="topbar-hint"><kbd>←</kbd><kbd>→</kbd> nav · <kbd>Esc</kbd> home</span>
+    </div>
+    <div class="topbar-nav" id="dots-3"></div>
+  </div>
+  <div class="view-body">
+    <div class="view-header">
+      <span class="view-tag">Trellis Histogram</span>
+      <h1>Units Distribution by Item</h1>
+      <p>Faceted histograms per item. Red dashed rule = mean units per order.</p>
+    </div>
+    <div class="chart-wrap"><div id="c3"></div></div>
+    
+    <div class="insight-strip">
+      <div class="strip-title">Quick Stats</div>
+      <div class="insight"><div class="label">Avg Units/Order</div><div class="val indigo">49.3</div></div>
+      <div class="insight"><div class="label">Max Units</div><div class="val amber">96</div></div>
+      <div class="insight"><div class="label">Min Units</div><div class="val emerald">2</div></div>
+      <div class="insight"><div class="label">Total Items</div><div class="val sky">5</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ VIEW 4 — Scatter + Custom HTML Checklist ═══════ -->
+<div id="pg-4" class="page view v4">
+  <div class="topbar">
+    <button class="btn-back" onclick="goHome()">← Home</button>
+    <div class="topbar-center">
+      <span class="topbar-title">Chart 4 of 7 · Interactive</span>
+      <span class="topbar-hint"><kbd>←</kbd><kbd>→</kbd> nav · <kbd>Esc</kbd> home</span>
+    </div>
+    <div class="topbar-nav" id="dots-4"></div>
+  </div>
+  <div class="view-body">
+    <div class="view-header">
+      <span class="view-tag">Interactive Scatter + HTML Checklist</span>
+      <h1>Units vs. Total Revenue</h1>
+      <p><strong>Interaction 1:</strong> Drag to brush-select points. <strong>Interaction 2:</strong> Use the right-side checklist to filter by region.</p>
+    </div>
+    
+    <div class="chart-wrap" style="max-width: 850px; width: 100%;">
+      <div class="view4-shell">
+        <div id="c4"></div>
+        <aside class="view4-panel">
+          <div class="view4-checklist">
+            <div class="view4-title">Region Checklist</div>
+            <label class="view4-checkrow" for="v4-region-east">
+              <input id="v4-region-east" type="checkbox" checked>
+              <span class="name">East</span>
+              <span class="blob east"></span>
+            </label>
+            <label class="view4-checkrow" for="v4-region-central">
+              <input id="v4-region-central" type="checkbox" checked>
+              <span class="name">Central</span>
+              <span class="blob central"></span>
+            </label>
+            <label class="view4-checkrow" for="v4-region-west">
+              <input id="v4-region-west" type="checkbox" checked>
+              <span class="name">West</span>
+              <span class="blob west"></span>
+            </label>
+          </div>
+
+          <div class="view4-legendstack">
+            <div class="view4-legendgroup">
+              <div class="gtitle">Item Shapes</div>
+              <div class="view4-legenditem"><span>Binder</span><span class="shape">●</span></div>
+              <div class="view4-legenditem"><span>Desk</span><span class="shape">■</span></div>
+              <div class="view4-legenditem"><span>Pen</span><span class="shape">▲</span></div>
+              <div class="view4-legenditem"><span>Pen Set</span><span class="shape cross">✚</span></div>
+              <div class="view4-legenditem"><span>Pencil</span><span class="shape">◆</span></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+    
+    <div class="insight-strip">
+      <div class="strip-title">Quick Stats</div>
+      <div class="insight"><div class="label">Total Revenue</div><div class="val indigo">$19,627</div></div>
+      <div class="insight"><div class="label">Total Units</div><div class="val amber">2,121</div></div>
+      <div class="insight"><div class="label">Top Region</div><div class="val emerald">Central</div></div>
+      <div class="insight"><div class="label">Avg Order</div><div class="val sky">$456</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ VIEW 5 — Heatmap + Hover Highlight ═══════ -->
+<div id="pg-5" class="page view v5">
+  <div class="topbar">
+    <button class="btn-back" onclick="goHome()">← Home</button>
+    <div class="topbar-center">
+      <span class="topbar-title">Chart 5 of 7 · Interactive</span>
+      <span class="topbar-hint"><kbd>←</kbd><kbd>→</kbd> nav · <kbd>Esc</kbd> home</span>
+    </div>
+    <div class="topbar-nav" id="dots-5"></div>
+  </div>
+  <div class="view-body">
+    <div class="view-header">
+      <span class="view-tag">Interactive Heatmap + Hover Highlight</span>
+      <h1>Region × Item Revenue</h1>
+      <p><strong>Interaction 1:</strong> Click any cell to select and highlight it. <strong>Interaction 2:</strong> Hover to highlight entire row (Item).</p>
+    </div>
+    <div class="chart-wrap"><div id="c5"></div></div>
+    
+    <div class="insight-strip">
+      <div class="strip-title">Quick Stats</div>
+      <div class="insight"><div class="label">Max Cell</div><div class="val indigo">Cen. Binder</div></div>
+      <div class="insight"><div class="label">Min Cell</div><div class="val amber">Cen. Desk</div></div>
+      <div class="insight"><div class="label">Regions</div><div class="val emerald">3</div></div>
+      <div class="insight"><div class="label">Items</div><div class="val sky">5</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ VIEW 6 — Bar + Dropdown ═══════ -->
+<div id="pg-6" class="page view v6">
+  <div class="topbar">
+    <button class="btn-back" onclick="goHome()">← Home</button>
+    <div class="topbar-center">
+      <span class="topbar-title">Chart 6 of 7 · Interactive</span>
+      <span class="topbar-hint"><kbd>←</kbd><kbd>→</kbd> nav · <kbd>Esc</kbd> home</span>
+    </div>
+    <div class="topbar-nav" id="dots-6"></div>
+  </div>
+  <div class="view-body">
+    <div class="view-header">
+      <span class="view-tag">Interactive Bar + Dropdown Filter</span>
+      <h1>Rep Performance Ranking</h1>
+      <p><strong>Interaction 1:</strong> Click a bar to highlight that rep. <strong>Interaction 2:</strong> Use the dropdown below to filter by region.</p>
+    </div>
+    <div class="chart-wrap" style="max-width: 900px; width: 100%;">
+      <div class="view6-shell">
+        <div id="c6"></div>
+        <aside class="view6-panel">
+          <label for="v6-region-filter">Filter by Region</label>
+          <select id="v6-region-filter">
+            <option value="All">All</option>
+            <option value="East">East</option>
+            <option value="Central">Central</option>
+            <option value="West">West</option>
+          </select>
+        </aside>
+      </div>
+    </div>
+    
+    <div class="insight-strip">
+      <div class="strip-title">Quick Stats</div>
+      <div class="insight"><div class="label">Top Rep</div><div class="val indigo">Jardine</div></div>
+      <div class="insight"><div class="label">Avg Rev/Rep</div><div class="val amber">$1,784</div></div>
+      <div class="insight"><div class="label">Max Sale</div><div class="val emerald">$1,879</div></div>
+      <div class="insight"><div class="label">Min Sale</div><div class="val sky">$9</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ VIEW 7 — Multi-View ═══════ -->
+<div id="pg-7" class="page view v7">
+  <div class="topbar">
+    <button class="btn-back" onclick="goHome()">← Home</button>
+    <div class="topbar-center">
+      <span class="topbar-title">Chart 7 of 7 — Multi-View</span>
+      <span class="topbar-hint"><kbd>←</kbd><kbd>→</kbd> nav · <kbd>Esc</kbd> home</span>
+    </div>
+    <div class="topbar-nav" id="dots-7"></div>
+  </div>
+  <div class="view-body" style="justify-content: flex-start; padding-top: 0.5rem;">
+    <div class="view-header" style="margin-bottom:0.2rem;">
+      <span class="view-tag">Multi-View Concatenation (5 Views)</span>
+      <h1>Full Dashboard</h1>
+    </div>
+    <div class="chart-wrap"><div id="c7"></div></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// DATA (43 rows from HW_III.xlsx)
+// ═══════════════════════════════════════
+const D=[{"OrderDate":"2021-01-06","Region":"East","Rep":"Jones","Item":"Pencil","Units":95,"Unit Cost":1.99,"Total":189.05},{"OrderDate":"2021-01-23","Region":"Central","Rep":"Kivell","Item":"Binder","Units":50,"Unit Cost":19.99,"Total":999.5},{"OrderDate":"2021-02-09","Region":"Central","Rep":"Jardine","Item":"Pencil","Units":36,"Unit Cost":4.99,"Total":179.64},{"OrderDate":"2021-02-26","Region":"Central","Rep":"Gill","Item":"Pen","Units":27,"Unit Cost":19.99,"Total":539.73},{"OrderDate":"2021-03-15","Region":"West","Rep":"Sorvino","Item":"Pencil","Units":56,"Unit Cost":2.99,"Total":167.44},{"OrderDate":"2021-04-01","Region":"East","Rep":"Jones","Item":"Binder","Units":60,"Unit Cost":4.99,"Total":299.4},{"OrderDate":"2021-04-18","Region":"Central","Rep":"Andrews","Item":"Pencil","Units":75,"Unit Cost":1.99,"Total":149.25},{"OrderDate":"2021-05-05","Region":"Central","Rep":"Jardine","Item":"Pencil","Units":90,"Unit Cost":4.99,"Total":449.1},{"OrderDate":"2021-05-22","Region":"West","Rep":"Thompson","Item":"Pencil","Units":32,"Unit Cost":1.99,"Total":63.68},{"OrderDate":"2021-06-08","Region":"East","Rep":"Jones","Item":"Binder","Units":60,"Unit Cost":8.99,"Total":539.4},{"OrderDate":"2021-06-25","Region":"Central","Rep":"Morgan","Item":"Pencil","Units":90,"Unit Cost":4.99,"Total":449.1},{"OrderDate":"2021-07-12","Region":"East","Rep":"Howard","Item":"Binder","Units":29,"Unit Cost":1.99,"Total":57.71},{"OrderDate":"2021-07-29","Region":"East","Rep":"Parent","Item":"Binder","Units":81,"Unit Cost":19.99,"Total":1619.19},{"OrderDate":"2021-08-15","Region":"East","Rep":"Jones","Item":"Pencil","Units":35,"Unit Cost":4.99,"Total":174.65},{"OrderDate":"2021-09-01","Region":"Central","Rep":"Smith","Item":"Desk","Units":2,"Unit Cost":125,"Total":250},{"OrderDate":"2021-09-18","Region":"East","Rep":"Jones","Item":"Pen Set","Units":16,"Unit Cost":15.99,"Total":255.84},{"OrderDate":"2021-10-05","Region":"Central","Rep":"Morgan","Item":"Binder","Units":28,"Unit Cost":8.99,"Total":251.72},{"OrderDate":"2021-10-22","Region":"East","Rep":"Jones","Item":"Pen","Units":64,"Unit Cost":8.99,"Total":575.36},{"OrderDate":"2021-11-08","Region":"East","Rep":"Parent","Item":"Pen","Units":15,"Unit Cost":19.99,"Total":299.85},{"OrderDate":"2021-11-25","Region":"Central","Rep":"Kivell","Item":"Pen Set","Units":96,"Unit Cost":4.99,"Total":479.04},{"OrderDate":"2021-12-12","Region":"Central","Rep":"Smith","Item":"Pencil","Units":67,"Unit Cost":1.29,"Total":86.43},{"OrderDate":"2021-12-29","Region":"East","Rep":"Parent","Item":"Pen Set","Units":74,"Unit Cost":15.99,"Total":1183.26},{"OrderDate":"2022-01-15","Region":"Central","Rep":"Gill","Item":"Binder","Units":46,"Unit Cost":8.99,"Total":413.54},{"OrderDate":"2022-02-01","Region":"Central","Rep":"Smith","Item":"Binder","Units":87,"Unit Cost":15,"Total":1305},{"OrderDate":"2022-02-18","Region":"East","Rep":"Jones","Item":"Binder","Units":4,"Unit Cost":4.99,"Total":19.96},{"OrderDate":"2022-03-07","Region":"West","Rep":"Sorvino","Item":"Binder","Units":7,"Unit Cost":19.99,"Total":139.93},{"OrderDate":"2022-03-24","Region":"Central","Rep":"Jardine","Item":"Pen Set","Units":50,"Unit Cost":4.99,"Total":249.5},{"OrderDate":"2022-04-10","Region":"Central","Rep":"Andrews","Item":"Pencil","Units":66,"Unit Cost":1.99,"Total":131.34},{"OrderDate":"2022-04-27","Region":"East","Rep":"Howard","Item":"Pen","Units":96,"Unit Cost":4.99,"Total":479.04},{"OrderDate":"2022-05-14","Region":"Central","Rep":"Gill","Item":"Pencil","Units":53,"Unit Cost":1.29,"Total":68.37},{"OrderDate":"2022-05-31","Region":"Central","Rep":"Gill","Item":"Binder","Units":80,"Unit Cost":8.99,"Total":719.2},{"OrderDate":"2022-06-17","Region":"Central","Rep":"Kivell","Item":"Desk","Units":5,"Unit Cost":125,"Total":625},{"OrderDate":"2022-07-04","Region":"East","Rep":"Jones","Item":"Pen Set","Units":62,"Unit Cost":4.99,"Total":309.38},{"OrderDate":"2022-07-21","Region":"Central","Rep":"Morgan","Item":"Pen Set","Units":55,"Unit Cost":12.49,"Total":686.95},{"OrderDate":"2022-08-07","Region":"Central","Rep":"Kivell","Item":"Pen Set","Units":42,"Unit Cost":23.95,"Total":1005.9},{"OrderDate":"2022-08-24","Region":"West","Rep":"Sorvino","Item":"Desk","Units":3,"Unit Cost":275,"Total":825},{"OrderDate":"2022-09-10","Region":"Central","Rep":"Gill","Item":"Pencil","Units":7,"Unit Cost":1.29,"Total":9.03},{"OrderDate":"2022-09-27","Region":"West","Rep":"Sorvino","Item":"Pen","Units":76,"Unit Cost":1.99,"Total":151.24},{"OrderDate":"2022-10-14","Region":"West","Rep":"Thompson","Item":"Binder","Units":57,"Unit Cost":19.99,"Total":1139.43},{"OrderDate":"2022-10-31","Region":"Central","Rep":"Andrews","Item":"Pencil","Units":14,"Unit Cost":1.29,"Total":18.06},{"OrderDate":"2022-11-17","Region":"Central","Rep":"Jardine","Item":"Binder","Units":11,"Unit Cost":4.99,"Total":54.89},{"OrderDate":"2022-12-04","Region":"Central","Rep":"Jardine","Item":"Binder","Units":94,"Unit Cost":19.99,"Total":1879.06},{"OrderDate":"2022-12-21","Region":"Central","Rep":"Andrews","Item":"Binder","Units":28,"Unit Cost":4.99,"Total":139.72}];
+
+const P=["#818cf8","#fbbf24","#34d399","#fb7185","#a78bfa","#fb923c","#38bdf8","#f472b6","#4ade80","#e879f9"];
+const DC={background:"transparent",font:"Inter, sans-serif",axis:{labelFont:"Inter",titleFont:"Inter",labelColor:"#94a3b8",titleColor:"#7c8ba5",gridColor:"rgba(148,163,184,0.06)",domainColor:"rgba(148,163,184,0.12)",tickColor:"rgba(148,163,184,0.1)"},legend:{labelFont:"Inter",titleFont:"Inter",labelColor:"#cbd5e1",titleColor:"#94a3b8",labelFontSize:11,titleFontSize:11},title:{font:"Inter",color:"#e2e8f0",subtitleColor:"#94a3b8",fontSize:13},view:{stroke:"transparent"},header:{labelFont:"Inter",titleFont:"Inter",labelColor:"#cbd5e1",titleColor:"#94a3b8",labelFontSize:11}};
+
+const specs = {
+  // 1: Donut
+  1: () => ({$schema:"https://vega.github.io/schema/vega-lite/v5.json",config:DC,width:280,height:280,data:{values:D},params:[{name:"hover",select:{type:"point",on:"pointerover",clear:"pointerout"}}],mark:{type:"arc",innerRadius:70,radius:135,stroke:"#ffffff",strokeWidth:1.5,cornerRadius:3,cursor:"pointer"},encoding:{theta:{field:"Total",aggregate:"sum",type:"quantitative"},color:{field:"Rep",type:"nominal",scale:{scheme:"category20"},legend:{title:"Sales Rep",orient:"right",labelFontSize:10}},opacity:{condition:{param:"hover",value:1},value:0.3},tooltip:[{field:"Rep",type:"nominal"},{field:"Total",aggregate:"sum",type:"quantitative",format:"$,.2f"}]}}),
+
+  // 2: Streamgraph
+  2: () => ({$schema:"https://vega.github.io/schema/vega-lite/v5.json",config:DC,width:580,height:260,data:{values:D},params:[{name:"hover",select:{type:"point",fields:["Item"],on:"pointerover",clear:"pointerout"}}],mark:{type:"area",interpolate:"monotone",cursor:"pointer",stroke:"#ffffff",strokeWidth:0.5},encoding:{x:{field:"OrderDate",type:"temporal",timeUnit:"yearmonth",axis:{title:null,format:"%b %Y"}},y:{field:"Total",aggregate:"sum",type:"quantitative",stack:"center",impute:{value:0},axis:null},color:{field:"Item",type:"nominal",scale:{scheme:"category10"},legend:{title:"Item"}},opacity:{condition:{param:"hover",value:1},value:0.2},tooltip:[{field:"Item",type:"nominal"},{field:"Total",aggregate:"sum",type:"quantitative",title:"Revenue",format:"$,.2f"}]}}),
+
+  // 3: Trellis histogram + mean overlay
+  3: () => ({
+    $schema:"https://vega.github.io/schema/vega-lite/v5.json",
+    config:DC,
+    data:{values:D},
+    columns:5,
+    facet:{field:"Item",type:"nominal",title:null,header:{labelFontSize:11,labelColor:"#cbd5e1",labelFont:"Inter",labelFontWeight:600}},
+    spec:{
+      width:110,
+      height:105,
+      layer:[
+        {
+          mark:{type:"bar",cornerRadiusTopLeft:4,cornerRadiusTopRight:4,color:"#818cf8",opacity:0.7,stroke:"#ffffff",strokeWidth:1},
+          encoding:{
+            x:{field:"Units",type:"quantitative",bin:{maxbins:8},axis:{title:"Units"}},
+            y:{aggregate:"count",type:"quantitative",axis:{title:"Count"}}
+          }
+        },
+        {
+          mark:{type:"rule",color:"#fb7185",strokeWidth:2.5,strokeDash:[6,3]},
+          encoding:{
+            x:{field:"Units",aggregate:"mean",type:"quantitative"},
+            tooltip:[{field:"Units",aggregate:"mean",type:"quantitative",title:"Mean",format:".1f"}]
+          }
+        }
+      ]
+    }
+  }),
+
+  // 4: Scatter Plot (Connected to HTML Checklist via signals)
+  4: () => ({
+    $schema:"https://vega.github.io/schema/vega-lite/v5.json",
+    config:DC,
+    width:480,
+    height:300,
+    data:{values:D},
+    transform:[
+      {filter:"(datum.Region === 'East' && eastOn) || (datum.Region === 'Central' && centralOn) || (datum.Region === 'West' && westOn)"}
+    ],
+    params:[
+      {name:"brush",select:{type:"interval"}},
+      {name:"eastOn",value:true},
+      {name:"centralOn",value:true},
+      {name:"westOn",value:true}
+    ],
+    mark:{type:"point",filled:true,size:120,strokeWidth:1.5,stroke:"#ffffff"},
+    encoding:{
+      x:{field:"Units",type:"quantitative",axis:{title:"Units Sold"}},
+      y:{field:"Total",type:"quantitative",axis:{title:"Total Revenue ($)",format:"$,.0f"}},
+      color:{
+        field:"Region",
+        type:"nominal",
+        scale:{domain:["East","Central","West"],range:["#818cf8","#fbbf24","#34d399"]},
+        legend:null 
+      },
+      opacity:{condition:{param:"brush",value:1},value:0.12},
+      shape:{
+        field:"Item",
+        type:"nominal",
+        scale:{range:["circle","square","triangle-up","cross","diamond"]},
+        legend:null 
+      },
+      tooltip:[{field:"Rep",type:"nominal"},{field:"Item",type:"nominal"},{field:"Region",type:"nominal"},{field:"Units",type:"quantitative"},{field:"Total",type:"quantitative",format:"$,.2f"}]
+    }
+  }),
+
+  // 5: Heatmap
+  5: () => ({
+    $schema:"https://vega.github.io/schema/vega-lite/v5.json",
+    config:DC,
+    width:300,
+    height:250,
+    data:{values:D},
+    params:[
+      {name:"cellClick",select:{type:"point",encodings:["x","y"]}},
+      {name:"rowHover",select:{type:"point",fields:["Item"],on:"pointerover",clear:"pointerout"}}
+    ],
+    mark:{type:"rect",cornerRadius:8,cursor:"pointer"},
+    encoding:{
+      x:{field:"Region",type:"nominal",axis:{title:"Region",labelAngle:0,labelFontSize:12}},
+      y:{field:"Item",type:"nominal",axis:{title:"Item",labelFontSize:12}},
+      color:{field:"Total",aggregate:"sum",type:"quantitative",scale:{scheme:"purples"},legend:{title:"Revenue ($)",format:"$,.0f"}},
+      opacity:{
+        condition:[
+          {param:"cellClick",empty:false,value:1},
+          {param:"rowHover",empty:false,value:1},
+          {test:{and:[{param:"cellClick"},{param:"rowHover"}]},value:1}
+        ],
+        value:0.2
+      },
+      stroke:{condition:{param:"cellClick",empty:false,value:"#fbbf24"},value:"#ffffff"},
+      strokeWidth:{condition:{param:"cellClick",empty:false,value:4},value:2},
+      tooltip:[{field:"Region",type:"nominal"},{field:"Item",type:"nominal"},{field:"Total",aggregate:"sum",type:"quantitative",title:"Revenue",format:"$,.2f"}]
+    }
+  }),
+
+  // 6: Horizontal bar (Connected to HTML Dropdown Filter via signals)
+  6: () => ({
+    $schema:"https://vega.github.io/schema/vega-lite/v5.json",
+    config:DC,
+    width:400,
+    height:300,
+    data:{values:D},
+    transform:[{filter:"regionFilter == 'All' || datum.Region == regionFilter"}],
+    params:[
+      {name:"regionFilter",value:"All"},
+      {name:"repClick",select:{type:"point",fields:["Rep"]}}
+    ],
+    mark:{type:"bar",cornerRadiusEnd:6,height:{band:0.7},stroke:"#ffffff",strokeWidth:1},
+    encoding:{
+      y:{field:"Rep",type:"nominal",sort:{field:"Total",op:"sum",order:"descending"},axis:{title:null,labelFontSize:11}},
+      x:{field:"Total",aggregate:"sum",type:"quantitative",axis:{title:"Total Revenue ($)",format:"$,.0f"}},
+      color:{field:"Region",type:"nominal",scale:{domain:["East","Central","West"],range:["#818cf8","#fbbf24","#34d399"]},legend:{title:"Region"}},
+      opacity:{condition:{param:"repClick",value:1},value:0.4},
+      tooltip:[{field:"Rep",type:"nominal"},{field:"Region",type:"nominal"},{field:"Total",aggregate:"sum",type:"quantitative",title:"Revenue",format:"$,.2f"},{field:"Units",aggregate:"sum",type:"quantitative",title:"Total Units"}]
+    }
+  }),
+
+  // 7: Multi-view layout (Retained sizing logic, Native legends strictly aligned to the right)
+  7: () => ({
+    $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+    config: DC,
+    data: {values: D},
+    spacing: 35,
+    title: {text: "HW_III Multi-View Dashboard", fontSize: 18, anchor: "start", offset: 15},
+    resolve: { scale: { color: "independent", shape: "independent" } },
+    vconcat: [
+      {
+        resolve: { scale: { color: "independent" } },
+        spacing: 25,
+        hconcat: [
+          {
+            title: "1 Donut", width: 180, height: 180,
+            params: [{name: "h1", select: {type: "point", on: "pointerover", clear: "pointerout"}}],
+            mark: {type: "arc", innerRadius: 50, radius: 95, stroke: "#ffffff", strokeWidth: 1.5, cursor: "pointer"},
+            encoding: {
+              theta: {field: "Total", aggregate: "sum", type: "quantitative"},
+              color: {field: "Rep", type: "nominal", scale: {scheme: "category20"}, legend: {title: "Rep", labelFontSize: 10, symbolSize: 50, titleFontSize: 11}},
+              opacity: {condition: {param: "h1", value: 1}, value: 0.3},
+              tooltip: [{field: "Rep", type: "nominal"}, {field: "Total", aggregate: "sum", type: "quantitative", format: "$,.0f"}]
+            }
+          },
+          {
+            title: "2 Streamgraph", width: 350, height: 160,
+            params: [{name: "h2", select: {type: "point", fields: ["Item"], on: "pointerover", clear: "pointerout"}}],
+            mark: {type: "area", interpolate: "monotone", cursor: "pointer", stroke: "#ffffff", strokeWidth: 0.5},
+            encoding: {
+              x: {field: "OrderDate", type: "temporal", timeUnit: "yearmonth", axis: {format: "%b %y", labelAngle: -40, labelFontSize: 10, title: null}},
+              y: {field: "Total", aggregate: "sum", type: "quantitative", stack: "center", impute: {value: 0}, axis: null},
+              color: {field: "Item", type: "nominal", scale: {scheme: "category10"}, legend: {title: "Item", labelFontSize: 10, symbolSize: 50, titleFontSize: 11}},
+              opacity: {condition: {param: "h2", value: 1}, value: 0.2},
+              tooltip: [{field: "Item", type: "nominal"}, {field: "Total", aggregate: "sum", type: "quantitative", format: "$,.0f"}]
+            }
+          },
+          {
+            title: "5 Heatmap", width: 220, height: 160,
+            params: [
+              {name: "cc", select: {type: "point", encodings: ["x", "y"]}},
+              {name: "rh", select: {type: "point", fields: ["Item"], on: "pointerover", clear: "pointerout"}}
+            ],
+            mark: {type: "rect", cornerRadius: 3, cursor: "pointer"},
+            encoding: {
+              x: {field: "Region", type: "nominal", axis: {title: null, labelAngle: 0, labelFontSize: 10}},
+              y: {field: "Item", type: "nominal", axis: {title: null, labelFontSize: 10}},
+              color: {field: "Total", aggregate: "sum", type: "quantitative", scale: {scheme: "purples"}, legend: {title: "Revenue", format: "s", labelFontSize: 10, titleFontSize: 11, gradientLength: 100}},
+              opacity: {
+                condition: [
+                  {param: "cc", empty: false, value: 1},
+                  {param: "rh", empty: false, value: 1},
+                  {test: {and: [{param: "cc"}, {param: "rh"}]}, value: 1}
+                ],
+                value: 0.2
+              },
+              stroke: {condition: {param: "cc", empty: false, value: "#fbbf24"}, value: "#ffffff"},
+              strokeWidth: {condition: {param: "cc", empty: false, value: 3}, value: 1},
+              tooltip: [{field: "Region", type: "nominal"}, {field: "Item", type: "nominal"}, {field: "Total", aggregate: "sum", type: "quantitative", format: "$,.0f"}]
+            }
+          }
+        ]
+      },
+      {
+        resolve: { scale: { color: "independent", shape: "independent" } },
+        spacing: 40,
+        hconcat: [
+          {
+            title: "3 Units Histogram per Item", columns: 5, facet: {field: "Item", type: "nominal", header: {labelFontSize: 11, title: null}},
+            spec: {
+              width: 80, height: 110,
+              layer: [
+                {mark: {type: "bar", color: "#818cf8", opacity: 0.7, cornerRadiusTopLeft: 3, cornerRadiusTopRight: 3, stroke: "#ffffff", strokeWidth: 1}, encoding: {x: {field: "Units", bin: {maxbins: 6}, type: "quantitative", axis: {title: null, labelFontSize: 9}}, y: {aggregate: "count", type: "quantitative", axis: {title: null, labelFontSize: 9, tickCount: 3}}}},
+                {mark: {type: "rule", color: "#fb7185", strokeWidth: 1.5, strokeDash: [3, 2]}, encoding: {x: {field: "Units", aggregate: "mean", type: "quantitative"}, tooltip: [{field: "Units", aggregate: "mean", type: "quantitative", title: "Mean", format: ".1f"}]}}
+              ]
+            }
+          },
+          {
+            title: "4 Scatter", width: 420, height: 170,
+            params: [{name: "b", select: {type: "interval"}}, {name: "lgCheck", select: {type: "point", fields: ["Region"]}, bind: "legend"}],
+            mark: {type: "point", filled: true, size: 60, stroke: "#ffffff", strokeWidth: 1},
+            encoding: {
+              x: {field: "Units", type: "quantitative", axis: {title: "Units", titleFontSize: 11, labelFontSize: 10}},
+              y: {field: "Total", type: "quantitative", axis: {title: "$", titleFontSize: 11, labelFontSize: 10, format: "s"}},
+              color: {
+                field: "Region", type: "nominal", 
+                scale: {domain: ["East", "Central", "West"], range: ["#818cf8", "#fbbf24", "#34d399"]}, 
+                legend: {title: "Region", symbolType: "square", labelFontSize: 10, symbolSize: 60, titleFontSize: 11}
+              },
+              opacity: {condition: {test: {and: [{param: "b"}, {param: "lgCheck"}]}, value: 1}, value: 0.12},
+              shape: {
+                field: "Item", type: "nominal", 
+                scale: {range:["circle","square","triangle-up","cross","diamond"]},
+                legend: {title: "Item", labelFontSize: 10, symbolSize: 60, titleFontSize: 11, symbolFillColor: "#eef2ff", symbolStrokeColor: "transparent"}
+              },
+              tooltip: [{field: "Rep", type: "nominal"}, {field: "Total", type: "quantitative", format: "$,.0f"}]
+            }
+          }
+        ]
+      }
+    ]
+  })
+};
+
+// ═══════ NAVIGATION AND JS ═══════
+const TOTAL = 7;
+let cur = 0;
+const rendered = {};
+const chartViews = {};
+const embedOpts = { actions: false, renderer: "svg" };
+
+let view4RegionState = { East: true, Central: true, West: true };
+let view6Region = "All";
+
+// Push external HTML checkbox state to Vega-Lite signal
+function applyView4RegionSignals(view) {
+  if (!view) return;
+  view
+    .signal('eastOn', view4RegionState.East)
+    .signal('centralOn', view4RegionState.Central)
+    .signal('westOn', view4RegionState.West)
+    .runAsync();
+}
+
+// Bind HTML checklist elements for View 4
+function setupView4FilterControl() {
+  const refs = [
+    { id: 'v4-region-east', key: 'East' },
+    { id: 'v4-region-central', key: 'Central' },
+    { id: 'v4-region-west', key: 'West' }
+  ];
+
+  refs.forEach((entry) => {
+    const cb = document.getElementById(entry.id);
+    if (!cb) return;
+    cb.checked = !!view4RegionState[entry.key];
+
+    if (cb.dataset.bound === '1') return;
+    cb.addEventListener('change', () => {
+      view4RegionState[entry.key] = cb.checked;
+      applyView4RegionSignals(chartViews[4]);
+    });
+    cb.dataset.bound = '1';
+  });
+}
+
+// Bind HTML dropdown elements for View 6
+function setupView6FilterControl() {
+  const select = document.getElementById('v6-region-filter');
+  if (!select) return;
+  if (select.dataset.bound !== '1') {
+    select.addEventListener('change', () => {
+      view6Region = select.value;
+      const view = chartViews[6];
+      if (view) view.signal('regionFilter', view6Region).runAsync();
+    });
+    select.dataset.bound = '1';
+  }
+  select.value = view6Region;
+}
+
+function buildDots() {
+  for (let v = 1; v <= TOTAL; v++) {
+    const wrap = document.getElementById('dots-' + v);
+    if (!wrap) continue;
+    wrap.innerHTML = '';
+    for (let i = 1; i <= TOTAL; i++) {
+      const dot = document.createElement('button');
+      dot.className = 'topbar-dot' + (i === v ? ' active' : '');
+      dot.onclick = () => go(i);
+      wrap.appendChild(dot);
+    }
+  }
+}
+
+buildDots();
+setupView4FilterControl();
+setupView6FilterControl();
+
+function go(n) {
+  if (cur === n) return;
+  const leaving = cur === 0 ? document.getElementById('pg-home') : document.getElementById('pg-' + cur);
+  leaving.classList.remove('active');
+  cur = n;
+  const entering = document.getElementById('pg-' + n);
+  
+  setTimeout(() => {
+    entering.classList.add('active');
+    entering.scrollTop = 0;
+    
+    if (!rendered[n]) {
+      rendered[n] = true;
+      vegaEmbed('#c' + n, specs[n](), embedOpts)
+        .then((result) => {
+          chartViews[n] = result.view;
+          if (n === 4) {
+            setupView4FilterControl();
+            applyView4RegionSignals(result.view);
+          }
+          if (n === 6) {
+            setupView6FilterControl();
+            result.view.signal('regionFilter', view6Region).runAsync();
+          }
+        })
+        .catch(console.error);
+    }
+  }, 80);
+}
+
+function goHome() {
+  if (cur === 0) return;
+  const leaving = document.getElementById('pg-' + cur);
+  leaving.classList.remove('active');
+  cur = 0;
+  setTimeout(() => { document.getElementById('pg-home').classList.add('active'); }, 80);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { goHome(); return; }
+  if (cur === 0) {
+    if (e.key === 'ArrowRight') go(1);
+    if (e.key === 'ArrowLeft') go(TOTAL);
+    return;
+  }
+  if (e.key === 'ArrowRight') {
+    if (cur === TOTAL) goHome();
+    else go(cur + 1);
+  }
+  if (e.key === 'ArrowLeft') {
+    if (cur === 1) goHome();
+    else go(cur - 1);
+  }
+});
+</script>
+</body>
+</html>
