@@ -516,7 +516,7 @@
       <div class="nav-card c-teal" onclick="go(6)">
         <div class="card-top"><div class="card-num">6</div><span class="card-type">Bar + Dropdown</span></div>
         <h3>Rep Performance Ranking</h3>
-        <p>Click highlight + dropdown region filter</p><span class="card-arrow">→</span>
+        <p>Hover highlight + dropdown region filter</p><span class="card-arrow">→</span>
       </div>
     </div>
 
@@ -728,7 +728,7 @@
     <div class="view-header">
       <span class="view-tag">Interactive Bar + Dropdown Filter</span>
       <h1>Rep Performance Ranking</h1>
-      <p><strong>Interaction 1:</strong> Click a bar to highlight that rep. <strong>Interaction 2:</strong> Use the dropdown below to filter by region.</p>
+      <p><strong>Interaction 1:</strong> Hover over a bar to highlight that rep. <strong>Interaction 2:</strong> Use the dropdown below to filter by region.</p>
     </div>
     <div class="chart-wrap" style="max-width: 900px; width: 100%;">
       <div class="view6-shell">
@@ -896,14 +896,14 @@ const specs = {
     transform:[{filter:"regionFilter == 'All' || datum.Region == regionFilter"}],
     params:[
       {name:"regionFilter",value:"All"},
-      {name:"repClick",select:{type:"point",fields:["Rep"]}}
+      {name:"repHover",select:{type:"point",fields:["Rep"],on:"pointerover",clear:"pointerout"}}
     ],
     mark:{type:"bar",cornerRadiusEnd:6,height:{band:0.7},stroke:"#ffffff",strokeWidth:1},
     encoding:{
       y:{field:"Rep",type:"nominal",sort:{field:"Total",op:"sum",order:"descending"},axis:{title:null,labelFontSize:11}},
       x:{field:"Total",aggregate:"sum",type:"quantitative",axis:{title:"Total Revenue ($)",format:"$,.0f"}},
       color:{field:"Region",type:"nominal",scale:{domain:["East","Central","West"],range:["#818cf8","#fbbf24","#34d399"]},legend:{title:"Region"}},
-      opacity:{condition:{param:"repClick",value:1},value:0.4},
+      opacity:{condition:{param:"repHover",value:1},value:0.2},
       tooltip:[{field:"Rep",type:"nominal"},{field:"Region",type:"nominal"},{field:"Total",aggregate:"sum",type:"quantitative",title:"Revenue",format:"$,.2f"},{field:"Units",aggregate:"sum",type:"quantitative",title:"Total Units"}]
     }
   }),
