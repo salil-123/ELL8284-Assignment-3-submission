@@ -173,10 +173,13 @@
     .v7 .view-tag { background: rgba(167,139,250,0.15); color: #c4b5fd; }
 
     .view-header h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.2rem; }
-    .view-header p { font-size: 0.72rem; color: var(--text-sub); line-height: 1.45; }
+    
+    /* View descriptions - interaction text is yellow */
+    .view-header p { font-size: 0.85rem; color: var(--text-sub); line-height: 1.45; }
+    .v4 .view-header p, .v5 .view-header p, .v6 .view-header p { color: var(--amber); }
 
     .chart-wrap {
-      position: relative; 
+      position: relative; background: var(--bg-card); border: 1px solid var(--border);
       background: var(--bg-card); 
       border: 1px solid var(--border);
       border-radius: 16px; 
@@ -474,6 +477,8 @@
   <div class="home-inner">
     <div class="home-badge">Assignment 3 — Vega-Lite</div>
     <h1>Sales Data Dashboard</h1>
+    <h3 style="margin-bottom: 10px;">BY SALIL GUJAR - 2025MCS2106 (ELL8284)</h3>
+    
     <p class="home-sub">Interactive visualizations revealing insights from the HW_III sales dataset</p>
     <p class="home-meta"> <span>Jan 2021</span> → <span>Dec 2022</span></p>
 
