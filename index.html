@@ -12,17 +12,25 @@
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --bg: #06080f;
-      --bg-card: rgba(15, 20, 35, 0.75);
-      --bg-card-hover: rgba(25, 33, 56, 0.9);
-      --border: rgba(255,255,255,0.06);
-      --border-hover: rgba(255,255,255,0.12);
-      --text: #eef2ff;
-      --text-sub: #a0aec0;
-      --text-dim: #5a6580;
-      --accent: #7c3aed;
-      --indigo: #818cf8; --amber: #fbbf24; --emerald: #34d399;
-      --rose: #fb7185; --sky: #38bdf8; --pink: #f472b6;
+      /* Light Theme Variables */
+      --bg: #f4f6f8;
+      --bg-card: rgba(255, 255, 255, 0.9);
+      --bg-card-hover: #ffffff;
+      --border: rgba(0, 0, 0, 0.08);
+      --border-hover: rgba(0, 0, 0, 0.15);
+      --text: #1e293b;
+      --text-sub: #475569;
+      --text-dim: #64748b;
+      --accent: #6366f1;
+      
+      /* Vibrant Colors for Light Theme */
+      --indigo: #4f46e5; 
+      --amber: #d97706; 
+      --emerald: #059669;
+      --rose: #e11d48; 
+      --sky: #0284c7; 
+      --pink: #db2777;
+      
       --radius: 14px;
       --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -32,9 +40,9 @@
     .ambient {
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
       background:
-        radial-gradient(ellipse 50% 40% at 15% 15%, rgba(124,58,237,0.07) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 35% at 85% 75%, rgba(56,189,248,0.05) 0%, transparent 70%),
-        radial-gradient(ellipse 45% 30% at 50% 50%, rgba(251,191,36,0.03) 0%, transparent 70%);
+        radial-gradient(ellipse 50% 40% at 15% 15%, rgba(99, 102, 241, 0.05) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 35% at 85% 75%, rgba(2, 132, 199, 0.04) 0%, transparent 70%),
+        radial-gradient(ellipse 45% 30% at 50% 50%, rgba(217, 119, 6, 0.03) 0%, transparent 70%);
     }
 
     /* ═══════ PAGE SYSTEM ═══════ */
@@ -52,15 +60,18 @@
 
     .home-badge {
       display: inline-block; padding: 0.25rem 0.9rem; border-radius: 100px;
-      background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.25);
-      color: #a78bfa; font-size: 0.6rem; font-weight: 600;
+      background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2);
+      color: var(--indigo); font-size: 0.6rem; font-weight: 600;
       letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 0.6rem;
     }
     .home-inner h1 {
       font-size: clamp(1.4rem, 3vw, 2.2rem); font-weight: 800;
       letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 0.35rem;
-      background: linear-gradient(135deg, #f1f5f9, #94a3b8);
+      background: linear-gradient(135deg, #0f172a, #334155);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .home-inner h3 {
+      font-weight: 700; color: var(--text-sub); margin-bottom: 10px; font-size: 0.9rem;
     }
     .home-inner .home-sub { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 0.2rem; line-height: 1.4; }
     .home-inner .home-meta { font-size: 0.65rem; color: var(--text-dim); margin-bottom: 1rem; }
@@ -79,6 +90,7 @@
       border-radius: var(--radius); padding: 0.8rem 1rem 0.75rem;
       cursor: pointer; transition: var(--transition); text-align: left;
       overflow: hidden; backdrop-filter: blur(10px);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
     }
     .nav-card::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
@@ -86,16 +98,16 @@
     }
     .nav-card:hover {
       background: var(--bg-card-hover); border-color: var(--border-hover);
-      transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.08);
     }
     .nav-card:hover::before { opacity: 1; }
-    .c-indigo::before { background: linear-gradient(90deg, #818cf8, #a78bfa); }
-    .c-amber::before { background: linear-gradient(90deg, #fbbf24, #f97316); }
-    .c-emerald::before { background: linear-gradient(90deg, #34d399, #14b8a6); }
-    .c-sky::before { background: linear-gradient(90deg, #38bdf8, #818cf8); }
-    .c-rose::before { background: linear-gradient(90deg, #fb7185, #f472b6); }
-    .c-violet::before { background: linear-gradient(90deg, #a78bfa, #8b5cf6); }
-    .c-teal::before { background: linear-gradient(90deg, #14b8a6, #06b6d4); }
+    .c-indigo::before { background: linear-gradient(90deg, #6366f1, #818cf8); }
+    .c-amber::before { background: linear-gradient(90deg, #d97706, #fbbf24); }
+    .c-emerald::before { background: linear-gradient(90deg, #059669, #34d399); }
+    .c-sky::before { background: linear-gradient(90deg, #0284c7, #38bdf8); }
+    .c-rose::before { background: linear-gradient(90deg, #e11d48, #fb7185); }
+    .c-violet::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+    .c-teal::before { background: linear-gradient(90deg, #0d9488, #2dd4bf); }
 
     .card-top { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; }
     .card-num {
@@ -103,13 +115,13 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 0.65rem; font-weight: 700; color: #fff; flex-shrink: 0;
     }
-    .c-indigo .card-num { background: linear-gradient(135deg, #818cf8, #6366f1); }
-    .c-amber .card-num { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
-    .c-emerald .card-num { background: linear-gradient(135deg, #34d399, #10b981); }
-    .c-sky .card-num { background: linear-gradient(135deg, #38bdf8, #3b82f6); }
-    .c-rose .card-num { background: linear-gradient(135deg, #fb7185, #ef4444); }
-    .c-violet .card-num { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
-    .c-teal .card-num { background: linear-gradient(135deg, #14b8a6, #06b6d4); }
+    .c-indigo .card-num { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+    .c-amber .card-num { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .c-emerald .card-num { background: linear-gradient(135deg, #10b981, #059669); }
+    .c-sky .card-num { background: linear-gradient(135deg, #0ea5e9, #0284c7); }
+    .c-rose .card-num { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+    .c-violet .card-num { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .c-teal .card-num { background: linear-gradient(135deg, #14b8a6, #0d9488); }
 
     .card-type { font-size: 0.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
     .nav-card h3 { font-size: 0.8rem; font-weight: 700; margin-bottom: 0.2rem; color: var(--text); }
@@ -125,31 +137,31 @@
     .topbar {
       position: sticky; top: 0; z-index: 10;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0.6rem 1.5rem; background: rgba(6,8,15,0.88);
+      padding: 0.6rem 1.5rem; background: rgba(244, 246, 248, 0.88);
       backdrop-filter: blur(16px); border-bottom: 1px solid var(--border);
     }
     .btn-back {
       display: inline-flex; align-items: center; gap: 0.4rem;
       padding: 0.4rem 0.8rem; border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05);
-      color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.75rem;
+      border: 1px solid rgba(0,0,0,0.1); background: rgba(0,0,0,0.02);
+      color: var(--text-sub); font-family: 'Inter', sans-serif; font-size: 0.75rem;
       font-weight: 600; cursor: pointer; transition: var(--transition);
     }
-    .btn-back:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.25); }
+    .btn-back:hover { background: rgba(0,0,0,0.06); color: var(--text); border-color: rgba(0,0,0,0.2); }
     
     .topbar-center { display: flex; align-items: center; gap: 1rem; }
     .topbar-title { font-size: 0.8rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.2px; }
     
-    .topbar-hint { font-size: 0.55rem; color: rgba(255,255,255,0.3); display: flex; align-items: center; gap: 0.35rem; }
-    .topbar-hint kbd { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); font-family: 'Inter'; font-size: 0.6rem; }
+    .topbar-hint { font-size: 0.55rem; color: var(--text-dim); display: flex; align-items: center; gap: 0.35rem; }
+    .topbar-hint kbd { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px; border: 1px solid rgba(0,0,0,0.1); background: rgba(0,0,0,0.04); font-family: 'Inter'; font-size: 0.6rem; }
     
     .topbar-nav { display: flex; gap: 0.4rem; align-items: center; }
     .topbar-dot {
       width: 10px; height: 10px; border-radius: 50%;
-      background: rgba(255,255,255,0.15); border: none;
+      background: rgba(0,0,0,0.15); border: none;
       cursor: pointer; transition: var(--transition);
     }
-    .topbar-dot:hover { background: rgba(255,255,255,0.3); }
+    .topbar-dot:hover { background: rgba(0,0,0,0.3); }
     .topbar-dot.active { width: 24px; border-radius: 5px; background: var(--accent); }
 
     .view-body {
@@ -164,35 +176,31 @@
       text-transform: uppercase; letter-spacing: 1.2px;
       padding: 0.2rem 0.6rem; border-radius: 5px; margin-bottom: 0.3rem;
     }
-    .v1 .view-tag { background: rgba(129,140,248,0.15); color: #a5b4fc; }
-    .v2 .view-tag { background: rgba(251,191,36,0.15); color: #fcd34d; }
-    .v3 .view-tag { background: rgba(52,211,153,0.15); color: #6ee7b7; }
-    .v4 .view-tag { background: rgba(56,189,248,0.15); color: #7dd3fc; }
-    .v5 .view-tag { background: rgba(251,113,133,0.15); color: #fda4af; }
-    .v6 .view-tag { background: rgba(20,184,166,0.15); color: #5eead4; }
-    .v7 .view-tag { background: rgba(167,139,250,0.15); color: #c4b5fd; }
+    .v1 .view-tag { background: rgba(99,102,241,0.1); color: var(--indigo); }
+    .v2 .view-tag { background: rgba(217,119,6,0.1); color: var(--amber); }
+    .v3 .view-tag { background: rgba(16,185,129,0.1); color: var(--emerald); }
+    .v4 .view-tag { background: rgba(2,132,199,0.1); color: var(--sky); }
+    .v5 .view-tag { background: rgba(225,29,72,0.1); color: var(--rose); }
+    .v6 .view-tag { background: rgba(13,148,136,0.1); color: #0d9488; }
+    .v7 .view-tag { background: rgba(124,58,237,0.1); color: var(--accent); }
 
     .view-header h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.2rem; }
     
-    /* View descriptions - interaction text is yellow */
+    /* View descriptions */
     .view-header p { font-size: 0.85rem; color: var(--text-sub); line-height: 1.45; }
-    .v4 .view-header p, .v5 .view-header p, .v6 .view-header p { color: var(--amber); }
+    
+    /* Highlight interaction text for custom interactive views */
+    .v4 .view-header p, .v5 .view-header p, .v6 .view-header p { color: var(--amber); font-weight: 600; }
 
     .chart-wrap {
-      position: relative; background: var(--bg-card); border: 1px solid var(--border);
+      position: relative; 
       background: var(--bg-card); 
       border: 1px solid var(--border);
       border-radius: 16px; 
       padding: 16px 20px; 
       margin: 0 auto;
-      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.03);
       flex-shrink: 0;
-    }
-    .chart-wrap::after {
-      content: ''; position: absolute; inset: -1px; border-radius: 17px; padding: 1px;
-      background: linear-gradient(135deg, rgba(124,58,237,0.2), transparent, rgba(56,189,248,0.15));
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
     }
     
     .vega-embed summary { display: none !important; }
@@ -210,9 +218,8 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 1rem 0.8rem;
-      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
       z-index: 20;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
     
     /* Override for home page specifically to put it at the bottom middle */
@@ -248,8 +255,8 @@
       padding-bottom: 0.5rem;
     }
     .insight {
-      background: rgba(255,255,255,0.03); 
-      border: 1px solid rgba(255,255,255,0.05);
+      background: rgba(0,0,0,0.02); 
+      border: 1px solid rgba(0,0,0,0.05);
       border-radius: 8px; 
       padding: 0.6rem 0.7rem; 
       text-align: center; 
@@ -278,9 +285,9 @@
     #pg-4 #c4 .vega-embed { width: 100% !important; max-width: 100%; }
     #pg-4 .view4-panel {
       width: 245px;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(0,0,0,0.08);
       border-radius: 12px;
-      background: rgba(10, 16, 34, 0.82);
+      background: #ffffff;
       padding: 0.62rem;
       display: flex;
       flex-direction: column;
@@ -297,7 +304,7 @@
     #pg-4 .view4-title {
       font-size: 0.7rem;
       font-weight: 700;
-      color: #cbd5e1;
+      color: var(--text-sub);
       letter-spacing: 0.5px;
       text-transform: uppercase;
       margin-bottom: 0.08rem;
@@ -310,26 +317,26 @@
       gap: 0.42rem;
       padding: 0.26rem 0.38rem;
       border-radius: 8px;
-      background: rgba(15, 23, 42, 0.66);
-      border: 1px solid rgba(129,140,248,0.16);
+      background: #f8fafc;
+      border: 1px solid rgba(0,0,0,0.06);
       cursor: pointer;
     }
     #pg-4 .view4-checkrow input[type="checkbox"] {
       width: 0.84rem;
       height: 0.84rem;
-      accent-color: #818cf8;
+      accent-color: var(--indigo);
       cursor: pointer;
     }
     #pg-4 .view4-checkrow .name {
       font-size: 0.78rem;
       font-weight: 600;
-      color: #e2e8f0;
+      color: var(--text);
     }
     #pg-4 .view4-checkrow .blob {
       width: 0.72rem;
       height: 0.72rem;
       border-radius: 999px;
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.1) inset;
     }
     #pg-4 .view4-checkrow .blob.east { background: #818cf8; }
     #pg-4 .view4-checkrow .blob.central { background: #fbbf24; }
@@ -338,7 +345,7 @@
       width: 100%;
       margin-top: 0.18rem;
       padding-top: 0.58rem;
-      border-top: 1px solid rgba(148,163,184,0.2);
+      border-top: 1px solid rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
       gap: 0.68rem;
@@ -353,7 +360,7 @@
     #pg-4 .view4-legendgroup .gtitle {
       font-size: 0.68rem;
       font-weight: 700;
-      color: #94a3b8;
+      color: var(--text-dim);
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 0.08rem;
@@ -365,7 +372,7 @@
       align-items: center;
       gap: 0.5rem;
       font-size: 0.78rem;
-      color: #e2e8f0;
+      color: var(--text-sub);
       padding: 0.05rem 0.2rem;
     }
     #pg-4 .view4-legenditem .shape {
@@ -401,26 +408,26 @@
     #pg-6 #c6 .vega-embed { width: 100% !important; max-width: 100%; }
     #pg-6 .view6-panel {
       width: 230px;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(0,0,0,0.08);
       border-radius: 12px;
-      background: rgba(10, 16, 34, 0.82);
+      background: #ffffff;
       padding: 0.62rem;
     }
     #pg-6 .view6-panel label {
       display: block;
       font-size: 0.75rem;
       font-weight: 700;
-      color: #cbd5e1;
+      color: var(--text-sub);
       letter-spacing: 0.4px;
       margin-bottom: 0.35rem;
     }
     #pg-6 .view6-panel select {
       appearance: none;
       width: 100%;
-      border: 1px solid rgba(129,140,248,0.45);
+      border: 1px solid rgba(0,0,0,0.15);
       border-radius: 9px;
-      background: linear-gradient(180deg, rgba(30,41,59,0.95), rgba(15,23,42,0.95));
-      color: #eef2ff;
+      background: #f8fafc;
+      color: var(--text);
       padding: 0.5rem 0.6rem;
       font-family: 'Inter', sans-serif;
       font-size: 0.85rem;
@@ -429,8 +436,8 @@
       cursor: pointer;
     }
     #pg-6 .view6-panel select:focus {
-      border-color: #a78bfa;
-      box-shadow: 0 0 0 2px rgba(167,139,250,0.2);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(99,102,241,0.2);
     }
     #pg-6 .view6-panel option {
       color: #0f172a;
@@ -781,7 +788,17 @@
 const D=[{"OrderDate":"2021-01-06","Region":"East","Rep":"Jones","Item":"Pencil","Units":95,"Unit Cost":1.99,"Total":189.05},{"OrderDate":"2021-01-23","Region":"Central","Rep":"Kivell","Item":"Binder","Units":50,"Unit Cost":19.99,"Total":999.5},{"OrderDate":"2021-02-09","Region":"Central","Rep":"Jardine","Item":"Pencil","Units":36,"Unit Cost":4.99,"Total":179.64},{"OrderDate":"2021-02-26","Region":"Central","Rep":"Gill","Item":"Pen","Units":27,"Unit Cost":19.99,"Total":539.73},{"OrderDate":"2021-03-15","Region":"West","Rep":"Sorvino","Item":"Pencil","Units":56,"Unit Cost":2.99,"Total":167.44},{"OrderDate":"2021-04-01","Region":"East","Rep":"Jones","Item":"Binder","Units":60,"Unit Cost":4.99,"Total":299.4},{"OrderDate":"2021-04-18","Region":"Central","Rep":"Andrews","Item":"Pencil","Units":75,"Unit Cost":1.99,"Total":149.25},{"OrderDate":"2021-05-05","Region":"Central","Rep":"Jardine","Item":"Pencil","Units":90,"Unit Cost":4.99,"Total":449.1},{"OrderDate":"2021-05-22","Region":"West","Rep":"Thompson","Item":"Pencil","Units":32,"Unit Cost":1.99,"Total":63.68},{"OrderDate":"2021-06-08","Region":"East","Rep":"Jones","Item":"Binder","Units":60,"Unit Cost":8.99,"Total":539.4},{"OrderDate":"2021-06-25","Region":"Central","Rep":"Morgan","Item":"Pencil","Units":90,"Unit Cost":4.99,"Total":449.1},{"OrderDate":"2021-07-12","Region":"East","Rep":"Howard","Item":"Binder","Units":29,"Unit Cost":1.99,"Total":57.71},{"OrderDate":"2021-07-29","Region":"East","Rep":"Parent","Item":"Binder","Units":81,"Unit Cost":19.99,"Total":1619.19},{"OrderDate":"2021-08-15","Region":"East","Rep":"Jones","Item":"Pencil","Units":35,"Unit Cost":4.99,"Total":174.65},{"OrderDate":"2021-09-01","Region":"Central","Rep":"Smith","Item":"Desk","Units":2,"Unit Cost":125,"Total":250},{"OrderDate":"2021-09-18","Region":"East","Rep":"Jones","Item":"Pen Set","Units":16,"Unit Cost":15.99,"Total":255.84},{"OrderDate":"2021-10-05","Region":"Central","Rep":"Morgan","Item":"Binder","Units":28,"Unit Cost":8.99,"Total":251.72},{"OrderDate":"2021-10-22","Region":"East","Rep":"Jones","Item":"Pen","Units":64,"Unit Cost":8.99,"Total":575.36},{"OrderDate":"2021-11-08","Region":"East","Rep":"Parent","Item":"Pen","Units":15,"Unit Cost":19.99,"Total":299.85},{"OrderDate":"2021-11-25","Region":"Central","Rep":"Kivell","Item":"Pen Set","Units":96,"Unit Cost":4.99,"Total":479.04},{"OrderDate":"2021-12-12","Region":"Central","Rep":"Smith","Item":"Pencil","Units":67,"Unit Cost":1.29,"Total":86.43},{"OrderDate":"2021-12-29","Region":"East","Rep":"Parent","Item":"Pen Set","Units":74,"Unit Cost":15.99,"Total":1183.26},{"OrderDate":"2022-01-15","Region":"Central","Rep":"Gill","Item":"Binder","Units":46,"Unit Cost":8.99,"Total":413.54},{"OrderDate":"2022-02-01","Region":"Central","Rep":"Smith","Item":"Binder","Units":87,"Unit Cost":15,"Total":1305},{"OrderDate":"2022-02-18","Region":"East","Rep":"Jones","Item":"Binder","Units":4,"Unit Cost":4.99,"Total":19.96},{"OrderDate":"2022-03-07","Region":"West","Rep":"Sorvino","Item":"Binder","Units":7,"Unit Cost":19.99,"Total":139.93},{"OrderDate":"2022-03-24","Region":"Central","Rep":"Jardine","Item":"Pen Set","Units":50,"Unit Cost":4.99,"Total":249.5},{"OrderDate":"2022-04-10","Region":"Central","Rep":"Andrews","Item":"Pencil","Units":66,"Unit Cost":1.99,"Total":131.34},{"OrderDate":"2022-04-27","Region":"East","Rep":"Howard","Item":"Pen","Units":96,"Unit Cost":4.99,"Total":479.04},{"OrderDate":"2022-05-14","Region":"Central","Rep":"Gill","Item":"Pencil","Units":53,"Unit Cost":1.29,"Total":68.37},{"OrderDate":"2022-05-31","Region":"Central","Rep":"Gill","Item":"Binder","Units":80,"Unit Cost":8.99,"Total":719.2},{"OrderDate":"2022-06-17","Region":"Central","Rep":"Kivell","Item":"Desk","Units":5,"Unit Cost":125,"Total":625},{"OrderDate":"2022-07-04","Region":"East","Rep":"Jones","Item":"Pen Set","Units":62,"Unit Cost":4.99,"Total":309.38},{"OrderDate":"2022-07-21","Region":"Central","Rep":"Morgan","Item":"Pen Set","Units":55,"Unit Cost":12.49,"Total":686.95},{"OrderDate":"2022-08-07","Region":"Central","Rep":"Kivell","Item":"Pen Set","Units":42,"Unit Cost":23.95,"Total":1005.9},{"OrderDate":"2022-08-24","Region":"West","Rep":"Sorvino","Item":"Desk","Units":3,"Unit Cost":275,"Total":825},{"OrderDate":"2022-09-10","Region":"Central","Rep":"Gill","Item":"Pencil","Units":7,"Unit Cost":1.29,"Total":9.03},{"OrderDate":"2022-09-27","Region":"West","Rep":"Sorvino","Item":"Pen","Units":76,"Unit Cost":1.99,"Total":151.24},{"OrderDate":"2022-10-14","Region":"West","Rep":"Thompson","Item":"Binder","Units":57,"Unit Cost":19.99,"Total":1139.43},{"OrderDate":"2022-10-31","Region":"Central","Rep":"Andrews","Item":"Pencil","Units":14,"Unit Cost":1.29,"Total":18.06},{"OrderDate":"2022-11-17","Region":"Central","Rep":"Jardine","Item":"Binder","Units":11,"Unit Cost":4.99,"Total":54.89},{"OrderDate":"2022-12-04","Region":"Central","Rep":"Jardine","Item":"Binder","Units":94,"Unit Cost":19.99,"Total":1879.06},{"OrderDate":"2022-12-21","Region":"Central","Rep":"Andrews","Item":"Binder","Units":28,"Unit Cost":4.99,"Total":139.72}];
 
 const P=["#818cf8","#fbbf24","#34d399","#fb7185","#a78bfa","#fb923c","#38bdf8","#f472b6","#4ade80","#e879f9"];
-const DC={background:"transparent",font:"Inter, sans-serif",axis:{labelFont:"Inter",titleFont:"Inter",labelColor:"#94a3b8",titleColor:"#7c8ba5",gridColor:"rgba(148,163,184,0.06)",domainColor:"rgba(148,163,184,0.12)",tickColor:"rgba(148,163,184,0.1)"},legend:{labelFont:"Inter",titleFont:"Inter",labelColor:"#cbd5e1",titleColor:"#94a3b8",labelFontSize:11,titleFontSize:11},title:{font:"Inter",color:"#e2e8f0",subtitleColor:"#94a3b8",fontSize:13},view:{stroke:"transparent"},header:{labelFont:"Inter",titleFont:"Inter",labelColor:"#cbd5e1",titleColor:"#94a3b8",labelFontSize:11}};
+
+// Updated Vega-Lite theme configuration for Light Theme
+const DC={
+  background:"transparent",
+  font:"Inter, sans-serif",
+  axis:{labelFont:"Inter",titleFont:"Inter",labelColor:"#64748b",titleColor:"#475569",gridColor:"rgba(0,0,0,0.06)",domainColor:"rgba(0,0,0,0.12)",tickColor:"rgba(0,0,0,0.1)"},
+  legend:{labelFont:"Inter",titleFont:"Inter",labelColor:"#475569",titleColor:"#334155",labelFontSize:11,titleFontSize:11},
+  title:{font:"Inter",color:"#1e293b",subtitleColor:"#64748b",fontSize:13},
+  view:{stroke:"transparent"},
+  header:{labelFont:"Inter",titleFont:"Inter",labelColor:"#475569",titleColor:"#334155",labelFontSize:11}
+};
 
 const specs = {
   // 1: Donut
@@ -796,7 +813,7 @@ const specs = {
     config:DC,
     data:{values:D},
     columns:5,
-    facet:{field:"Item",type:"nominal",title:null,header:{labelFontSize:11,labelColor:"#cbd5e1",labelFont:"Inter",labelFontWeight:600}},
+    facet:{field:"Item",type:"nominal",title:null,header:{labelFontSize:11,labelColor:"#475569",labelFont:"Inter",labelFontWeight:600}},
     spec:{
       width:110,
       height:105,
@@ -1000,7 +1017,7 @@ const specs = {
               shape: {
                 field: "Item", type: "nominal", 
                 scale: {range:["circle","square","triangle-up","cross","diamond"]},
-                legend: {title: "Item", labelFontSize: 10, symbolSize: 60, titleFontSize: 11, symbolFillColor: "#eef2ff", symbolStrokeColor: "transparent"}
+                legend: {title: "Item", labelFontSize: 10, symbolSize: 60, titleFontSize: 11, symbolFillColor: "#f4f6f8", symbolStrokeColor: "transparent"}
               },
               tooltip: [{field: "Rep", type: "nominal"}, {field: "Total", type: "quantitative", format: "$,.0f"}]
             }
