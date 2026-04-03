@@ -1017,7 +1017,14 @@ const specs = {
               shape: {
                 field: "Item", type: "nominal", 
                 scale: {range:["circle","square","triangle-up","cross","diamond"]},
-                legend: {title: "Item", labelFontSize: 10, symbolSize: 60, titleFontSize: 11, symbolFillColor: "#f4f6f8", symbolStrokeColor: "transparent"}
+                legend: {
+                  title: "Item", 
+                  labelFontSize: 10, 
+                  symbolSize: 60, 
+                  titleFontSize: 11, 
+                  symbolFillColor: "#64748b", /* Slate gray for visibility */
+                  symbolStrokeColor: "#64748b" /* Match the fill */
+                }
               },
               tooltip: [{field: "Rep", type: "nominal"}, {field: "Total", type: "quantitative", format: "$,.0f"}]
             }
